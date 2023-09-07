@@ -11,6 +11,7 @@ import { EditProfileInput } from './dtos/edit-profile.dto';
 import { Verification } from './entities/verification.entity';
 import { UserProfileOutput } from 'src/users/dtos/user-profile.dto';
 import { VerifyEmailOutput } from './dtos/verify-email.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,7 @@ export class UsersService {
     @InjectRepository(Verification)
     private readonly verifications: Repository<Verification>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
 
@@ -32,10 +34,13 @@ export class UsersService {
       if (exists) {
         return { ok: false, error: 'There is a user with that email already' };
       }
+      
       const user = await this.users.save(this.users.create({ email, password, role }));
-      await this.verifications.save(this.verifications.create({
-        user:
-      }))
+
+      const verification = await this.verifications.save(this.verifications.create({
+        user
+      }));
+      this.mailService.sendVerificationEmail(user.email, verification.code);
       return { ok: true };
     } catch (e) {
       return { ok: false, error: 'Can not create account' };
@@ -114,10 +119,11 @@ export class UsersService {
 
   async verifyEmail(code: string): Promise<VerifyEmailOutput> {
     try {
-      const verification = await this.verifications.findOne({ code }, { relations: ['user'] }); // relations를 통해 해당 필드의 전체 데이터를 가져옴.
+      const verification = await this.verifications.findOne({ code }, { relations: ['user'] })
       if(verification) {
         verification.user.verified = true;
         this.users.save(verification.user);
+        await this.verifications.delete(verification.id)
         return { ok: true };
       }
       return { ok: false, error: 'Verification not found'}
