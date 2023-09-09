@@ -8,7 +8,7 @@ import {
 } from './dtos/create-account.dto';
 import { LoginInput, LoginOutput } from './dtos/login.dto';
 import { User } from './entities/user.entity';
-import { UserService } from './users.service';
+import { UsersService } from './users.service';
 import {
   UserProfileInput,
   UserProfileOutput,
@@ -18,7 +18,7 @@ import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
 
 @Resolver((of) => User)
 export class UsersResolver {
-  constructor(private readonly usersService: UserService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Mutation((returns) => CreateAccountOuput)
   async createAccount(
@@ -26,6 +26,7 @@ export class UsersResolver {
   ): Promise<CreateAccountOuput> {
     return this.usersService.createAccount(createAccountInput);
   }
+
 
   @Mutation((returns) => LoginOutput)
   async login(@Args('input') loginInput: LoginInput): Promise<LoginOutput> {
