@@ -9,6 +9,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { IsEmail, IsEnum } from 'class-validator';
 import { InternalServerErrorException } from '@nestjs/common';
+import { Order } from 'src/orders/entities/order.entity';
 
 export enum UserRole {
   Client = "Client",
@@ -43,14 +44,14 @@ export class User extends CoreEntity {
   @IsBoolean()
   verified: boolean;
 
-
   // 하나의 오너(유저)는 많은 레스토랑을 가짐.
   @Field((type) => [Restaurant])
   @OneToMany((type) => Restaurant, (restaurant) => restaurant.owner)
   restaurants: Restaurant[];
 
-  
-
+  @Field((type) => [Order])
+  @OneToMany((type) => Order, restaurant => restaurant.customer)
+  orders: Order[];
 
   @BeforeInsert()
   @BeforeUpdate() // save()메서드를 통해 모델에 있는 정보가 변경되기 전에 호출됨.
