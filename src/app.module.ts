@@ -45,15 +45,14 @@ import { OrderItem } from './orders/entities/order-item.entity';
     }),
 
     TypeOrmModule.forRoot({
-      type: 'postgres',
+      type: 'mysql',
       host: process.env.DB_HOST,
       port: +process.env.DB_PORT,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       synchronize: process.env.NODE_ENV !== 'prod',
-      logging:
-        process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
+      logging: process.env.NODE_ENV !== 'prod' && process.env.NODE_ENV !== 'test',
       entities: [User, Verification, Restaurant, Category, Order, OrderItem],
     }),
 
@@ -70,11 +69,17 @@ import { OrderItem } from './orders/entities/order-item.entity';
     }),
 
     GraphQLModule.forRoot({
-      // forRoot()를 통해 root모듈로 설정해줌.
+      installSubscriptionHandlers: true; // use WebSocket for Real-Time
       autoSchemaFile: true,
       driver: ApolloDriver,
-      context: ({ req }) => ({ user: req['user'] }), // context 프로퍼티를 통해 익스프레스의 request객체를 받아옴.
-    }),
+      context: ({ req, connection }) => { // 'Guard' is available in both HTTP and WebSocket
+        const TOKEN_KEY = 'x-jwt'
+        if (req) { // use HTTP
+          return { token: req.headers[TOKEN_KEY] } // sends token to AuthGuard
+        } else if (connection) { // use WebSocket
+          return { token: connection.context[TOKEN_KEY] } // sends token to AuthGuard
+        }}
+      }),
 
     AuthModule,
 
@@ -83,12 +88,15 @@ import { OrderItem } from './orders/entities/order-item.entity';
     RestaurantsModule,
 
     OrdersModule,
+
+    CommonModule,
   ],
 
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
+
+/* export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(JwtMiddleware).forRoutes({
       // exclude({ path:  ,  method:  })를 통해 해당 경로 및 요청에 미들웨어를 제외시켜줄 수도 있음.
@@ -97,3 +105,6 @@ export class AppModule implements NestModule {
     }); // '/graphql' 경로(path)에 POST요청(method)인 경우에만 JwtMiddleware를 적용함.
   }
 } // path: '*'과 method: RequestMethod.ALL을 통해  모든 경로 및 요청에 해당 미들웨어를 적용할 수도 있음.
+ */
+
+export class AppModule {}

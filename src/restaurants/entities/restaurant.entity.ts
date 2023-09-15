@@ -1,16 +1,9 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
-import { FieldsOnCorrectTypeRule } from 'graphql';
+import { IsString, Length } from 'class-validator';
 import { CoreEntity } from 'src/common/entities/core.entity';
+import { Order } from 'src/orders/entities/order.entity';
 import { User } from 'src/users/entities/user.entity';
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  RelationId,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, RelationId } from 'typeorm';
 import { Category } from './category.entity';
 import { Dish } from './dish.entity';
 
@@ -29,36 +22,32 @@ export class Restaurant extends CoreEntity {
   @IsString()
   coverImg: string;
 
-  @Field((type) => String, { defaultValue: 'New York' })
+  @Field((type) => String)
   @Column()
   @IsString()
   address: string;
 
-  // 많은 레스토랑은 하나의 오너만 가짐.
-  @Field((type) => User)
-  @ManyToOne((type) => User, (user) => user.restaurants, {
-    onDelete: 'CASCADE',
-  })
-  owner: User;
-
-  // 많은 레스토랑은 하나의 카테고리만 가짐.
-  @Field((type) => Category, { nullable: true }) // 레스토랑은 카테고리를 가지지 않을 수도 있음.
+  @Field((type) => Category, { nullable: true })
   @ManyToOne((type) => Category, (category) => category.restaurants, {
     nullable: true,
     onDelete: 'SET NULL',
   })
   category: Category;
 
+  @Field((type) => User)
+  @ManyToOne((type) => User, (user) => user.restaurants, {
+    onDelete: 'CASCADE',
+  })
+  owner: User;
+
   @RelationId((restaurant: Restaurant) => restaurant.owner)
   ownerId: number;
 
+  @Field((type) => [Order])
+  @OneToMany((type) => Order, (order) => order.restaurant)
+  orders: Order[];
 
-  @Field(type => [Dish])
-  @OneToMany(
-    type => Dish,
-    dish => dish.restaurant,
-  )
+  @Field((type) => [Dish])
+  @OneToMany((type) => Dish, (dish) => dish.restaurant)
   menu: Dish[];
 }
-
-

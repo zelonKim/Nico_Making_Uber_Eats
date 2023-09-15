@@ -5,10 +5,10 @@ import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { Order } from './entities/order.entity';
 import { OrderResolver } from './orders.resolver';
-import { OrdersService } from './orders.service';
+import { OrderService } from './orders.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Order, Restaurant, OrderItem, Dish])],
-  providers: [OrdersService, OrderResolver],
+  providers: [OrderService, OrderResolver],
 })
 export class OrdersModule {}

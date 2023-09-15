@@ -1,6 +1,6 @@
 import {
   Field,
-  InputType,
+  Float,
   InputType,
   ObjectType,
   registerEnumType,
@@ -43,8 +43,6 @@ export class Order extends CoreEntity {
   @RelationId((order: Order) => order.customer)
   customerId: number;
 
-  //////////////////
-
   @Field((type) => User, { nullable: true })
   @ManyToOne((type) => User, (user) => user.rides, {
     onDelete: 'SET NULL',
@@ -55,8 +53,6 @@ export class Order extends CoreEntity {
   @RelationId((order: Order) => order.driver)
   driverId: number;
 
-  //////////////////
-
   @Field((type) => Restaurant, { nullable: true })
   @ManyToOne((type) => Restaurant, (restaurant) => restaurant.orders, {
     onDelete: 'SET NULL',
@@ -64,21 +60,15 @@ export class Order extends CoreEntity {
   })
   restaurant?: Restaurant;
 
-  //////////////////
-
   @Field((type) => [OrderItem])
   @ManyToMany((type) => OrderItem)
   @JoinTable()
   items: OrderItem[];
 
-  //////////////////
-
   @Column({ nullable: true })
   @Field((type) => Float, { nullable: true })
   @IsNumber()
   total?: number;
-
-  //////////////////
 
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.Pending })
   @Field((type) => OrderStatus)

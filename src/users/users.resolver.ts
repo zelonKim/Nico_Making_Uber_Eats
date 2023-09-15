@@ -1,33 +1,29 @@
 import { UseGuards } from '@nestjs/common';
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { AuthUser } from 'src/auth/authUser.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { Role } from 'src/auth/role.decorator';
 import {
   CreateAccountInput,
-  CreateAccountOuput,
+  CreateAccountOutput,
 } from './dtos/create-account.dto';
-import { LoginInput, LoginOutput } from './dtos/login.dto';
-import { User } from './entities/user.entity';
-import { UsersService } from './users.service';
-import {
-  UserProfileInput,
-  UserProfileOutput,
-} from 'src/users/dtos/user-profile.dto';
 import { EditProfileInput, EditProfileOutput } from './dtos/edit-profile.dto';
+import { LoginInput, LoginOutput } from './dtos/login.dto';
+import { UserProfileInput, UserProfileOutput } from './dtos/user-profile.dto';
 import { VerifyEmailInput, VerifyEmailOutput } from './dtos/verify-email.dto';
-import { Role } from 'src/auth/role.decorator';
+import { User } from './entities/user.entity';
+import { UserService } from './users.service';
 
 @Resolver((of) => User)
-export class UsersResolver {
-  constructor(private readonly usersService: UsersService) {}
+export class UserResolver {
+  constructor(private readonly usersService: UserService) {}
 
-  @Mutation((returns) => CreateAccountOuput)
+  @Mutation((returns) => CreateAccountOutput)
   async createAccount(
     @Args('input') createAccountInput: CreateAccountInput,
-  ): Promise<CreateAccountOuput> {
+  ): Promise<CreateAccountOutput> {
     return this.usersService.createAccount(createAccountInput);
   }
-
 
   @Mutation((returns) => LoginOutput)
   async login(@Args('input') loginInput: LoginInput): Promise<LoginOutput> {
@@ -35,7 +31,7 @@ export class UsersResolver {
   }
 
   @Query((returns) => User)
-  @Role(['Any']) // Any user can see their profile
+  @Role(['Any'])
   me(@AuthUser() authUser: User) {
     return authUser;
   }
@@ -48,7 +44,7 @@ export class UsersResolver {
     return this.usersService.findById(userProfileInput.userId);
   }
 
-  @Mutation((retuns) => EditProfileOutput)
+  @Mutation((returns) => EditProfileOutput)
   @Role(['Any'])
   async editProfile(
     @AuthUser() authUser: User,
@@ -57,10 +53,8 @@ export class UsersResolver {
     return this.usersService.editProfile(authUser.id, editProfileInput);
   }
 
-
-
   @Mutation((returns) => VerifyEmailOutput)
-  async verifyEmail(
+  verifyEmail(
     @Args('input') { code }: VerifyEmailInput,
   ): Promise<VerifyEmailOutput> {
     return this.usersService.verifyEmail(code);

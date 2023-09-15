@@ -1,28 +1,33 @@
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Inject } from '@nestjs/common';
+import { Args, Mutation, Resolver, Query, Subscription } from '@nestjs/graphql';
+import { PubSub } from 'graphql-subscriptions';
 import { AuthUser } from 'src/auth/authUser.decorator';
 import { Role } from 'src/auth/role.decorator';
-import { CreateOrderInput, CreateOrderOutput } from 'src/orders/dtos/create-order.dto';
+import { PUB_SUB } from 'src/common/common.string';
 import { User } from 'src/users/entities/user.entity';
-import { EditOrderOutput } from './dtos/edit-order.dto';
-import { GetOrderInput } from './dtos/get-order.dto';
-import { GetOrdersInput, GetOrdersOutput, GetORdersOutput } from './dtos/get-orders.dto';
+import { CreateOrderInput, CreateOrderOutput } from './dtos/create-order.dto';
+import { EditOrderInput, EditOrderOutput } from './dtos/edit-order.dto';
+import { GetOrderInput, GetOrderOutput } from './dtos/get-order.dto';
+import { GetOrdersInput, GetOrdersOutput } from './dtos/get-orders.dto';
 import { Order } from './entities/order.entity';
-import { OrdersService } from './orders.service';
+import { OrderService } from './orders.service';
 
 @Resolver((of) => Order)
 export class OrderResolver {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrderService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
-  @Mutation((resturns) => CreateOrderOutput)
+  @Mutation((returns) => CreateOrderOutput)
   @Role(['Client'])
   async createOrder(
     @AuthUser() customer: User,
-    @Args('input') createOrderInput: CreateOrderInput,
+    @Args('input')
+    createOrderInput: CreateOrderInput,
   ): Promise<CreateOrderOutput> {
-    return this.ordersService.createOrder(customer, createOrderInput);
+    return this.ordersService.crateOrder(customer, createOrderInput);
   }
-
-  /////////////////
 
   @Query((returns) => GetOrdersOutput)
   @Role(['Any'])
@@ -33,18 +38,14 @@ export class OrderResolver {
     return this.ordersService.getOrders(user, getOrdersInput);
   }
 
-  /////////////////
-
   @Query((returns) => GetOrderOutput)
   @Role(['Any'])
   async getOrder(
     @AuthUser() user: User,
     @Args('input') getOrderInput: GetOrderInput,
-  ): Promise<GetOrdersOutput> {
+  ): Promise<GetOrderOutput> {
     return this.ordersService.getOrder(user, getOrderInput);
   }
-
-  /////////////////
 
   @Mutation((returns) => EditOrderOutput)
   @Role(['Any'])
@@ -53,5 +54,18 @@ export class OrderResolver {
     @Args('input') editOrderInput: EditOrderInput,
   ): Promise<EditOrderOutput> {
     return this.ordersService.editOrder(user, editOrderInput);
+  }
+
+  @Mutation((returns) => Boolean)
+  potatoReady() {
+    this.pubSub.publish('hotPotatos', { readyPotato: 'Your potato is ready.' });
+    return true;
+  }
+
+  @Subscription((returns) => String)
+  @Role(['Any'])
+  readyPotato(@AuthUser() user: User) {
+    console.log(user);
+    return this.pubSub.asyncIterator('hotPotatos');
   }
 }

@@ -1,37 +1,51 @@
-import { CanActivate, ExecutionContext } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { User } from 'src/users/entities/user.entity';
-
 import { AllowedRoles } from './role.decorator';
 import { Reflector } from '@nestjs/core';
-
+import { JwtService } from 'src/jwt/jwt.service';
+import { UserService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly jwtService: JwtService,
+    private readonly userService: UserService,
+  ) {}
 
-  canActivate(context: ExecutionContext) {
-    const roles = this.reflector.get<AllowedRoles>( // can get the Metadata thru 'key'
+  async canActivate(context: ExecutionContext) {
+    const roles = this.reflector.get<AllowedRoles>(
       'roles',
-      context.getHandler(), // returns a reference to the handler that will be invoked next in the request pipeline.
-    ); // 'roles' variable has a value of the prameter in @Role()
+      context.getHandler(),
+    );
 
-    if (!roles) {// there is no metadata, so anybody can access publically
+    if (!roles) {
       return true;
     }
 
     const gqlContext = GqlExecutionContext.create(context).getContext(); // http 컨텍스트를 graphQL 컨텍스트로 바꿔줌.
-    const user: User = gqlContext['user']; 
+    const token = gqlContext.token;
 
-    if (!user) { 
+    if (token) {
+      const decoded = this.jwtService.verify(token.toString());
+
+      if (typeof decoded === 'object' && decoded.hasOwnProperty('id')) {
+        const { user } = await this.userService.findById(decoded['id']);
+        if (!user) {
+          return false;
+        }
+        gqlContext['user'] = user;
+
+        if (roles.includes('Any')) {
+          return true;
+        }
+        return roles.includes(user.role);
+      } else {
+        return false;
+      }
+      } else {
       return false;
     }
-
-    if (roles.includes('Any')) {  
-      return true;
-    }
-
-    return roles.includes(user.role); // 특정 role만 접근 가능하도록 함.
+  }
 }
-
 // if guard returns true, it will goes on.  Otherwise, it will stop

@@ -4,21 +4,21 @@ import {
   ObjectType,
   registerEnumType,
 } from '@nestjs/graphql';
-import { CoreEntity } from 'src/common/entities/core.entity';
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { IsEmail, IsEnum } from 'class-validator';
+import { CoreEntity } from 'src/common/entities/core.entity';
 import { InternalServerErrorException } from '@nestjs/common';
+import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
+import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { Order } from 'src/orders/entities/order.entity';
 
 export enum UserRole {
-  Client = "Client",
-  Owner = "Owner",
-  Delivery = "Delivery",
+  Client = 'Client',
+  Owner = 'Owner',
+  Delivery = 'Delivery',
 }
 
 registerEnumType(UserRole, { name: 'UserRole' });
-
 
 @InputType('UserInputType', { isAbstract: true })
 @ObjectType()
@@ -44,17 +44,20 @@ export class User extends CoreEntity {
   @IsBoolean()
   verified: boolean;
 
-  // 하나의 오너(유저)는 많은 레스토랑을 가짐.
   @Field((type) => [Restaurant])
   @OneToMany((type) => Restaurant, (restaurant) => restaurant.owner)
   restaurants: Restaurant[];
 
   @Field((type) => [Order])
-  @OneToMany((type) => Order, restaurant => restaurant.customer)
+  @OneToMany((type) => Order, (order) => order.customer)
   orders: Order[];
 
+  @Field((type) => [Order])
+  @OneToMany((type) => Order, (order) => order.driver)
+  rides: Order[];
+
   @BeforeInsert()
-  @BeforeUpdate() // save()메서드를 통해 모델에 있는 정보가 변경되기 전에 호출됨.
+  @BeforeUpdate()
   async hashPassword(): Promise<void> {
     if (this.password) {
       try {
