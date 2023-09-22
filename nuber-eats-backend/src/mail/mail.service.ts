@@ -20,7 +20,7 @@ export class MailService {
       'from',
       `Nico from Nuber Eats <mailgun@${this.options.domain}>`,
     );
-    form.append('to', `nico@nomadcoders.co`);
+    form.append('to', `ksz1860@naver.com`);
     form.append('subject', subject);
     form.append('template', template);
     emailVars.forEach(eVar => form.append(`v:${eVar.key}`, eVar.value));
@@ -43,7 +43,7 @@ export class MailService {
   }
 
   sendVerificationEmail(email: string, code: string) {
-    this.sendEmail('Verify Your Email', 'verify-email', [
+    this.sendEmail('plz Verify Your Email', 'seongjin', [
       { key: 'code', value: code },
       { key: 'username', value: email },
     ]);
