@@ -5,13 +5,13 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany } from 'typeorm';
-import bcrypt from 'bcrypt';
 import { CoreEntity } from 'src/common/entities/core.entity';
 import { InternalServerErrorException } from '@nestjs/common';
 import { IsBoolean, IsEmail, IsEnum, IsString } from 'class-validator';
 import { Restaurant } from 'src/restaurants/entities/restaurant.entity';
 import { Order } from 'src/orders/entities/order.entity';
 import { Payment } from 'src/payments/entities/payment.entity';
+import * as bcrypt from 'bcrypt';
 
 export enum UserRole {
   Client = 'Client',
@@ -74,6 +74,7 @@ export class User extends CoreEntity {
   )
   rides: Order[];
 
+
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword(): Promise<void> {
@@ -87,6 +88,7 @@ export class User extends CoreEntity {
     }
   }
 
+  
   async checkPassword(aPassword: string): Promise<boolean> {
     try {
       const ok = await bcrypt.compare(aPassword, this.password);

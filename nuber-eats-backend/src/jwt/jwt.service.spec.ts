@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import * as jwt from 'jsonwebtoken';
-import { CONFIG_OPTIONS } from 'src/common/common.constants';
+import { CONFIG_OPTIONS } from 'src/common/common.strings';
 import { JwtService } from './jwt.service';
 
 const TEST_KEY = 'testKey';
