@@ -20,7 +20,7 @@ export class MailService {
       'from',
       `Nico from Nuber Eats <mailgun@${this.options.domain}>`, // the verification mail`s sender
     );
-    form.append('to', `ksz18601@gmail.com`); // the Authorized email address that can receive a verification mail
+    form.append('to', 'ksz18601@gmail.com'); // the Authorized email address that can receive a verification mail
     form.append('subject', subject); // the verification mail`s title
     form.append('template', template); // Using template`s name
     emailVars.forEach(

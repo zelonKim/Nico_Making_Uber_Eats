@@ -8,8 +8,10 @@ import { Button } from "../components/button";
 import { FormError } from "../components/form-error";
 import nuberLogo from "../images/logo.svg";
 import { LOCALSTORAGE_TOKEN } from "../strings";
-import { loginMutation, loginMutationVariables } from "../__generated__/loginMutation";
-
+import {
+  loginMutation,
+  loginMutationVariables,
+} from "../__generated__/loginMutation";
 
 const LOGIN_MUTATION = gql`
   mutation loginMutation($loginInput: LoginInput!) {

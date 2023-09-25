@@ -43,7 +43,6 @@ export class UserService {
           user,
         }),
       );
-
       this.mailService.sendVerificationEmail(user.email, verification.code);
       return { ok: true };
     } catch (e) {
@@ -104,6 +103,8 @@ export class UserService {
     }
   }
 
+
+  
   async editProfile(
     userId: number,
     { email, password }: EditProfileInput,
@@ -130,6 +131,8 @@ export class UserService {
       return { ok: false, error: 'Could not update profile.' };
     }
   }
+
+
 
   async verifyEmail(code: string): Promise<VerifyEmailOutput> {
     try {
