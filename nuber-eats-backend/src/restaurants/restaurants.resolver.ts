@@ -98,6 +98,9 @@ export class RestaurantResolver {
   }
 }
 
+
+
+
 @Resolver(of => Category)
 export class CategoryResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
@@ -119,6 +122,9 @@ export class CategoryResolver {
     return this.restaurantService.findCategoryBySlug(categoryInput);
   }
 }
+
+
+
 
 @Resolver(of => Dish)
 export class DishResolver {

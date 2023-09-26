@@ -6,6 +6,7 @@ import {
 } from "../../__generated__/verifyEmail";
 import { useHistory, useLocation } from "react-router-dom";
 import { useMe } from "../../hooks/useMe";
+import { Helmet } from "react-helmet";
 
 const VERIFY_EMAIL_MUTATION = gql`
   mutation verifyEmail($input: VerifyEmailInput!) {
@@ -64,6 +65,9 @@ export const ConfirmEmail = () => {
 
   return (
     <div className="mt-52 flex flex-col items-center justify-center">
+      <Helmet>
+        <title> Verify Email | Nuber Eats </title>
+      </Helmet>
       <h1 className="text-lg mb-2 font-medium"> Confirming email... </h1>
     </div>
   );
