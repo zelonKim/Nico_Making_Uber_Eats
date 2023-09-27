@@ -19,6 +19,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
 import { RestaurantsInput, RestaurantsOutput } from './dtos/restaurants.dto';
 import {
@@ -40,6 +41,7 @@ export class RestaurantService {
     private readonly categories: CategoryRepository,
   ) {}
 
+  
   async createRestaurant(
     owner: User,
     createRestaurantInput: CreateRestaurantInput,
@@ -134,6 +136,21 @@ export class RestaurantService {
         ok: false,
         error: 'Could not delete restaurant.',
       };
+    }
+  }
+
+  async myRestaurants(owner: User): Promise<MyRestaurantsOutput> {
+    try {
+      const restaurants = await this.restaurants.find({ owner });
+      return {
+        restaurants,
+        ok: true,
+      };
+    } catch {
+      return {
+        ok: false,
+        error: 'Coul not find restaurants.'
+      }
     }
   }
 

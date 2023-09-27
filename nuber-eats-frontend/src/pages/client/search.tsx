@@ -16,7 +16,7 @@ const SEARCH_RESTAURANT = gql`
       totalPages
       totalResults
       restaurants {
-        ...RestaurantsParts
+        ...RestaurantParts
       }
     }
   }

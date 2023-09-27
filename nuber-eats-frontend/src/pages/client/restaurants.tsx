@@ -3,9 +3,9 @@ import { url } from "inspector";
 import React, { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
-import { useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { Restaurant } from "../../components/restaurant";
-import { RESTAURANT_FRAGMENT } from "../fragments";
+import { CATEGORY_FRAGMENT, RESTAURANT_FRAGMENT } from "../fragments";
 import {
   restaurantsPageQuery,
   restaurantsPageQueryVariables,
@@ -17,11 +17,7 @@ const RESTAURANTS_QUERY = gql`
       ok
       error
       categories {
-        id
-        name
-        coverImg
-        slug
-        restaurantCount
+        ...CategoryParts
       }
     }
     restaurants(input: $input) {
@@ -30,11 +26,12 @@ const RESTAURANTS_QUERY = gql`
       totalPages
       totalResults
       results {
-        ...RestaurantsParts
+        ...RestaurantParts
       }
     }
   }
   ${RESTAURANT_FRAGMENT}
+  ${CATEGORY_FRAGMENT}
 `;
 
 interface IFormProps {
@@ -65,10 +62,7 @@ export const Restaurants = () => {
     const { searchTerm } = getValues();
     history.push({
       pathname: "/search",
-      search: `?term=${searchTerm}`, // 'search' option shows an input data on URL
-      /* state: { // 'state' option does not show an input data on URL
-        searchTerm,
-      }, */
+      search: `?term=${searchTerm}`, 
     });
   };
 
@@ -94,18 +88,17 @@ export const Restaurants = () => {
         <div className="max-w-screen-2xl pb-20 mx-auto mt-8">
           <div className="flex justify-around max-w-sm mx-auto ">
             {data?.allCategories.categories?.map((category) => (
-              <div
-                key={category.id}
-                className="flex flex-col group items-center cursor-pointer"
-              >
-                <div
-                  className=" w-16 h-16 bg-cover group-hover:bg-gray-100 rounded-full"
-                  style={{ backgroundImage: `url(${category.coverImg})` }}
-                ></div>
-                <span className="mt-1 text-sm text-center font-medium">
-                  {category.name}
-                </span>
-              </div>
+              <Link key={category.id} to={`/category/${category.slug}`}>
+                <div className="flex flex-col group items-center cursor-pointer">
+                  <div
+                    className=" w-16 h-16 bg-cover group-hover:bg-gray-100 rounded-full"
+                    style={{ backgroundImage: `url(${category.coverImg})` }}
+                  ></div>
+                  <span className="mt-1 text-sm text-center font-medium">
+                    {category.name}
+                  </span>
+                </div>
+              </Link>
             ))}
           </div>
 

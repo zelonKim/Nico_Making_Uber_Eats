@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const RESTAURANT_FRAGMENT = gql`
-  fragment RestaurantsParts on Restaurant {
+  fragment RestaurantParts on Restaurant {
     id
     name
     coverImg
@@ -10,5 +10,15 @@ export const RESTAURANT_FRAGMENT = gql`
     }
     address
     isPromoted
+  }
+`;
+
+export const CATEGORY_FRAGMENT = gql`
+  fragment CategoryParts on Category {
+    id
+    name
+    coverImg
+    slug
+    restaurantCount
   }
 `;
