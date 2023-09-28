@@ -19,6 +19,7 @@ import {
   EditRestaurantInput,
   EditRestaurantOutput,
 } from './dtos/edit-restaurant.dto';
+import { MyRestaurantInput, MyRestaurantOutput } from './dtos/my-restaurant.dto';
 import { MyRestaurantsOutput } from './dtos/my-restaurants.dto';
 import { RestaurantInput, RestaurantOutput } from './dtos/restaurant.dto';
 import { RestaurantsInput, RestaurantsOutput } from './dtos/restaurants.dto';
@@ -41,7 +42,6 @@ export class RestaurantService {
     private readonly categories: CategoryRepository,
   ) {}
 
-  
   async createRestaurant(
     owner: User,
     createRestaurantInput: CreateRestaurantInput,
@@ -49,13 +49,16 @@ export class RestaurantService {
     try {
       const newRestaurant = this.restaurants.create(createRestaurantInput);
       newRestaurant.owner = owner;
+
       const category = await this.categories.getOrCreate(
         createRestaurantInput.categoryName,
       );
       newRestaurant.category = category;
+
       await this.restaurants.save(newRestaurant);
       return {
         ok: true,
+        restaurantId: newRestaurant.id,
       };
     } catch {
       return {
@@ -149,10 +152,30 @@ export class RestaurantService {
     } catch {
       return {
         ok: false,
-        error: 'Coul not find restaurants.'
-      }
+        error: 'Could not find restaurants.',
+      };
     }
   }
+
+
+  async myRestaurant(
+    owner: User,
+    {id}: MyRestaurantInput,
+  ): Promise<MyRestaurantOutput>{
+    try {
+      const restaurant = await this.restaurants.findOne({ owner, id }, { relations:['menu'] } )
+      return {
+        restaurant,
+        ok: true,
+      }
+    } catch {
+      return {
+        ok: false,
+        error: 'Could not find restaurant.',
+      };
+    }
+  }
+
 
   async allCategories(): Promise<AllCategoriesOutput> {
     try {
@@ -316,8 +339,8 @@ export class RestaurantService {
     }
   }
 
-  async checkDishOwner(ownerId: number, dishId: number) {}
 
+  
   async editDish(
     owner: User,
     editDishInput: EditDishInput,
