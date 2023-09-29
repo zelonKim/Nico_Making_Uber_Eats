@@ -9,20 +9,26 @@ import { Restaurant } from './restaurant.entity';
 export class DishChoice {
   @Field(type => String)
   name: string;
+
   @Field(type => Int, { nullable: true })
   extra?: number;
 }
+
 
 @InputType('DishOptionInputType', { isAbstract: true })
 @ObjectType()
 export class DishOption {
   @Field(type => String)
   name: string;
+
   @Field(type => [DishChoice], { nullable: true })
   choices?: DishChoice[];
+  
   @Field(type => Int, { nullable: true })
   extra?: number;
 }
+
+
 
 @InputType('DishInputType', { isAbstract: true })
 @ObjectType()

@@ -113,7 +113,7 @@ export class RestaurantResolver {
   myRestaurant(
     @AuthUser() owner: User,
     @Args('input') myRestaurantInput: MyRestaurantInput,
-  ): Promise<MyRestaurantsOutput> {
+  ): Promise<MyRestaurantOutput> {
     return this.restaurantService.myRestaurant(owner, myRestaurantInput);
   }
 }

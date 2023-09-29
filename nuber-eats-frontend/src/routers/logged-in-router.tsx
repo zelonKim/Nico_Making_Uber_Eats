@@ -64,7 +64,7 @@ const restaurantRoutes = [
     component: <MyRestaurant /> 
   },
   { 
-    path: "/restaurants/:id/add-dish",
+    path: "/restaurants/:restaurantId/add-dish",
     component: <AddDish /> 
   },
 ];

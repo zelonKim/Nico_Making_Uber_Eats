@@ -46,9 +46,11 @@ export class PaymentService {
         }),
       );
       restaurant.isPromoted = true;
+
       const date = new Date();
       date.setDate(date.getDate() + 7);
       restaurant.promotedUntil = date;
+
       this.restaurants.save(restaurant);
       return {
         ok: true,
@@ -58,6 +60,8 @@ export class PaymentService {
     }
   }
 
+
+  
   async getPayments(user: User): Promise<GetPaymentsOutput> {
     try {
       const payments = await this.payments.find({ user: user });
