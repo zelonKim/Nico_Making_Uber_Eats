@@ -41,8 +41,8 @@ export class PaymentService {
       await this.payments.save(
         this.payments.create({
           transactionId,
-          user: owner,
           restaurant,
+          user: owner,
         }),
       );
       restaurant.isPromoted = true;
