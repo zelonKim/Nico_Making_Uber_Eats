@@ -69,7 +69,7 @@ export class OrderService {
             if (dishOption.extra) {
               dishFinalPrice = dishFinalPrice + dishOption.extra;
             } else {
-              const dishOptionChoice = dishOption.choices.find(
+              const dishOptionChoice = dishOption.choices?.find(
                 optionChoice => optionChoice.name === itemOption.choice,
               );
               if (dishOptionChoice) {
@@ -107,15 +107,16 @@ export class OrderService {
       });
       return {
         ok: true,
+        orderId: order.id
       };
-    } catch {
+    } catch(e) {
+      console.log(e);
       return {
         ok: false,
         error: 'Could not create order.',
       };
     }
   }
-
 
 
 
@@ -163,6 +164,7 @@ export class OrderService {
     }
   }
 
+
   canSeeOrder(user: User, order: Order): boolean {
     let canSee = true;
     if (user.role === UserRole.Client && order.customerId !== user.id) {
@@ -176,6 +178,7 @@ export class OrderService {
     }
     return canSee;
   }
+
 
   async getOrder(
     user: User,
@@ -191,11 +194,10 @@ export class OrderService {
           error: 'Order not found.',
         };
       }
-
       if (!this.canSeeOrder(user, order)) {
         return {
           ok: false,
-          error: 'You cant see that',
+          error: 'You can`t see that',
         };
       }
       return {
@@ -210,38 +212,42 @@ export class OrderService {
     }
   }
 
+
+
   async editOrder(
     user: User,
     { id: orderId, status }: EditOrderInput,
   ): Promise<EditOrderOutput> {
     try {
       const order = await this.orders.findOne(orderId);
+      
       if (!order) {
         return {
           ok: false,
           error: 'Order not found.',
         };
       }
+
       if (!this.canSeeOrder(user, order)) {
         return {
           ok: false,
           error: "Can't see this.",
         };
       }
+
       let canEdit = true;
+
       if (user.role === UserRole.Client) {
         canEdit = false;
       }
+
       if (user.role === UserRole.Owner) {
         if (status !== OrderStatus.Cooking && status !== OrderStatus.Cooked) {
           canEdit = false;
         }
       }
       if (user.role === UserRole.Delivery) {
-        if (
-          status !== OrderStatus.PickedUp &&
-          status !== OrderStatus.Delivered
-        ) {
+        if (status !== OrderStatus.PickedUp && status !== OrderStatus.Delivered) {
           canEdit = false;
         }
       }
@@ -251,11 +257,14 @@ export class OrderService {
           error: "You can't do that.",
         };
       }
+
       await this.orders.save({
         id: orderId,
         status,
       });
+
       const newOrder = { ...order, status };
+
       if (user.role === UserRole.Owner) {
         if (status === OrderStatus.Cooked) {
           await this.pubSub.publish(NEW_COOKED_ORDER, {
@@ -263,7 +272,9 @@ export class OrderService {
           });
         }
       }
+
       await this.pubSub.publish(NEW_ORDER_UPDATE, { orderUpdates: newOrder });
+
       return {
         ok: true,
       };
@@ -274,6 +285,8 @@ export class OrderService {
       };
     }
   }
+
+
 
   async takeOrder(
     driver: User,

@@ -54,6 +54,7 @@ export class OrderResolver {
     return this.ordersService.getOrder(user, getOrderInput);
   }
 
+  
   @Mutation(returns => EditOrderOutput)
   @Role(['Any'])
   async editOrder(
@@ -100,6 +101,7 @@ export class OrderResolver {
   orderUpdates(@Args('input') orderUpdatesInput: OrderUpdatesInput) {
     return this.pubSub.asyncIterator(NEW_ORDER_UPDATE);
   }
+
 
   @Mutation(returns => TakeOrderOutput)
   @Role(['Delivery'])
