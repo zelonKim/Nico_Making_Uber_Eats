@@ -1,7 +1,7 @@
-import { gql, useMutation, useQuery } from "@apollo/client";
-import React from "react";
+import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
+import React, { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link, useParams } from "react-router-dom";
+import { Link, useHistory, useParams } from "react-router-dom";
 import {
   VictoryAxis,
   VictoryBar,
@@ -23,9 +23,11 @@ import {
   myRestaurant,
   myRestaurantVariables,
 } from "../../__generated__/myRestaurant";
+import { pedingOrders } from "../../__generated__/pedingOrders";
 
 import {
   DISH_FRAGMENT,
+  FULL_ORDER_FRAGMENT,
   ORDERS_FRAGMENT,
   RESTAURANT_FRAGMENT,
 } from "../fragments";
@@ -61,6 +63,17 @@ const CREATE_PAYMENT_MUTATION = gql`
     }
   }
 `;
+
+
+const PENDING_ORDERS_SUBSCRIPTION = gql`
+  subscription pedingOrders {
+    pendingOrders {
+      ...FullOrderParts
+    }
+  }
+  ${FULL_ORDER_FRAGMENT}
+`
+
 
 interface IParams {
   id: string;
@@ -119,6 +132,17 @@ export const MyRestaurant = () => {
 }
   
 
+  const {data: subscriptionData} = useSubscription<pedingOrders>(PENDING_ORDERS_SUBSCRIPTION)
+  
+  const history = useHistory()
+  
+  useEffect(() => {
+    if(subscriptionData?.pendingOrders.id) {
+    history.push(`/orders/${subscriptionData.pendingOrders.id}`)    
+    }
+  }, [subscriptionData])
+  
+  
   return (
     <div>
       <Helmet>
@@ -128,27 +152,27 @@ export const MyRestaurant = () => {
         <script src="https://cdn.paddle.com/paddle/paddle.js"></script>
       </Helmet>
       <div
-        className="  bg-gray-700  py-28 bg-center bg-cover"
+        className="bg-gray-700 bg-center bg-cover py-28"
         style={{
           backgroundImage: `url(${data?.myRestaurant.restaurant?.coverImg})`,
         }}
       ></div>
       <div className="container mt-10">
-        <h2 className="text-4xl font-medium mb-10">
+        <h2 className="mb-10 text-4xl font-medium">
           {data?.myRestaurant.restaurant?.name || "Loading..."}
         </h2>
         <Link
           to={`/restaurants/${id}/add-dish`}
-          className=" mr-8 text-white bg-gray-800 py-3 px-10"
+          className="px-10 py-3 mr-8 text-white bg-gray-800 "
         >
           Add Dish &rarr;
         </Link>
-        <span onClick={triggerPaddle} className="text-white bg-lime-700 py-3 px-10">
+        <span onClick={triggerPaddle} className="px-10 py-3 text-white bg-lime-700">
           Buy Promotion &rarr;
         </span>
         <div className="mt-10">
           {data?.myRestaurant.restaurant?.menu.length === 0 ? (
-            <h4 className="text-xl mb-5">You have no dish</h4>
+            <h4 className="mb-5 text-xl">You have no dish</h4>
           ) : (
             <div className="grid mt-16 md:grid-cols-3 gap-x-5 gap-y-10">
               {data?.myRestaurant.restaurant?.menu.map((dish, index) => (
@@ -163,8 +187,8 @@ export const MyRestaurant = () => {
           )}
         </div>
         <div className="mt-20 mb-10">
-          <h4 className="text-center text-2xl font-medium">Sales</h4>
-          <div className="  mt-10">
+          <h4 className="text-2xl font-medium text-center">Sales</h4>
+          <div className="mt-10 ">
             <VictoryChart
               height={500}
               theme={VictoryTheme.material}

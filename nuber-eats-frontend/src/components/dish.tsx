@@ -49,7 +49,7 @@ export const Dish: React.FC<IDishProps> = ({
           {orderStarted && (
             <button
               className={`ml-3 py-1 px-3 focus:outline-none text-sm  text-white ${
-                isSelected ? "bg-red-500" : " bg-lime-600"
+                isSelected ? "bg-red-500" : " bg-green-600"
               }`}
               onClick={onClick}
             >

@@ -33,7 +33,7 @@ export class OrderService {
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
-  async crateOrder(
+  async createOrder(
     customer: User,
     { restaurantId, items }: CreateOrderInput,
   ): Promise<CreateOrderOutput> {
