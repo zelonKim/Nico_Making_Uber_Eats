@@ -1,5 +1,29 @@
 import React, { useEffect, useState } from "react";
 import GoogleMapReact from "google-map-react";
+import { gql, useMutation, useSubscription } from "@apollo/client";
+import { FULL_ORDER_FRAGMENT } from "../fragments";
+import { cookedOrders } from "../../__generated__/cookedOrders";
+import { Link, useHistory } from "react-router-dom";
+import { takeOrder, takeOrderVariables } from "../../__generated__/takeOrder";
+
+const COOKED_ORDERS_SUBSCRIPTION = gql`
+  subscription cookedOrders {
+    cookedOrders {
+      ...FullOrderParts
+    }
+  }
+  ${FULL_ORDER_FRAGMENT}
+`;
+
+
+const TAKE_ORDER_MUTATION = gql`
+  mutation takeOrder($input: TakeOrderInput!) {
+    takeOrder(input: $input) {
+      ok
+      error
+    }
+  }
+`
 
 interface ICoords {
   lat: number;
@@ -36,24 +60,23 @@ export const Dashboard = () => {
     });
   }, []);
 
-  
   useEffect(() => {
     // when current User`s location is changed,
     if (map && maps) {
       map.panTo(new google.maps.LatLng(driverCoords.lat, driverCoords.lng)); // Google Map moves to the location updated latitude and longitude
-   
-     const geocoder = new google.maps.Geocoder(); // can convert between addresses and geographic coordinates.
+
+      const geocoder = new google.maps.Geocoder(); // can convert between addresses and geographic coordinates.
       geocoder.geocode(
         {
-        location: new google.maps.LatLng(driverCoords.lat, driverCoords.lng),
+          location: new google.maps.LatLng(driverCoords.lat, driverCoords.lng),
         },
-        (results, status) => { console.log(results) }); // results is an 'address' converted from 'coordinates'
-
+        (results, status) => {
+          console.log(results);
+        }
+      ); // results is an 'address' converted from 'coordinates'
     }
-  }, [driverCoords.lat, driverCoords.lng]); 
+  }, [driverCoords.lat, driverCoords.lng]);
 
-
-  
   const onApiLoaded = ({ map, maps }: { map: any; maps: any }) => {
     // when Google Map is Loaded,
     setTimeout(() => {
@@ -63,31 +86,67 @@ export const Dashboard = () => {
     setMaps(maps);
   };
 
+  const makeRoute = () => {
+    if (map) {
+      const directionsService = new google.maps.DirectionsService();
+      const directionsRenderer = new google.maps.DirectionsRenderer();
 
-  
-  const onGetRouteClick = () => {
-    if(map) {
-        const directionsService = new google.maps.DirectionsService();
-        const directionsRenderer = new google.maps.DirectionsRenderer();
-        
-        directionsRenderer.setMap(map)
-        
-        directionsService.route({
-              origin: {
-                location: new google.maps.LatLng(driverCoords.lat, driverCoords.lng)  
-              },
-              destination: {
-                location: new google.maps.LatLng(driverCoords.lat + 0.05, driverCoords.lng + 0.05)  
-              },
-              travelMode: google.maps.TravelMode.DRIVING,
-            }, 
-            (result, status) => {
-                directionsRenderer.setDirections(result) // shows the route from 'orgin' to 'destination' 
-            })
+      directionsRenderer.setMap(map);
+
+      directionsService.route(
+        {
+          origin: {
+            location: new google.maps.LatLng(
+              driverCoords.lat,
+              driverCoords.lng
+            ),
+          },
+          destination: {
+            location: new google.maps.LatLng(
+              driverCoords.lat + 0.05,
+              driverCoords.lng + 0.05
+            ),
+          },
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          directionsRenderer.setDirections(result); // shows the route from 'orgin' to 'destination'
+        }
+      );
     }
   };
 
-  
+  const { data: cookedOrdersData } = useSubscription<cookedOrders>(
+    COOKED_ORDERS_SUBSCRIPTION
+  );
+
+  useEffect(() => {
+    if (cookedOrdersData?.cookedOrders.id) {
+      makeRoute();
+    }
+  }, [cookedOrdersData]);
+
+
+  const history = useHistory()
+
+  const onCompleted = (data: takeOrder) => {
+    if(data.takeOrder.ok) {
+      history.push(`/orders/${cookedOrdersData?.cookedOrders.id}`)
+    }
+  }
+
+  const [takeOrderMutation] = useMutation<takeOrder, takeOrderVariables>(TAKE_ORDER_MUTATION, {onCompleted})
+
+  const triggerMutation = (orderId: number) => {
+    takeOrderMutation({
+        variables: {
+          input: {
+            id: orderId,
+          },
+        },
+    })
+  }
+
   return (
     <div>
       <div
@@ -104,11 +163,32 @@ export const Dashboard = () => {
           }}
           bootstrapURLKeys={{ key: "AIzaSyDBu_aKoux8fqzTULT744-DAGJi0aGgOUA" }}
         >
-         <Driver lat={driverCoords.lat} lng={driverCoords.lng} />
+          <Driver lat={driverCoords.lat} lng={driverCoords.lng} />
         </GoogleMapReact>
-        
       </div>
-      <button onClick={onGetRouteClick}>Get route</button>
+      <div className="max-w-screen-sm mx-auto bg-white relative -top-10 shadow-lg py-8 px-5">
+        {cookedOrdersData?.cookedOrders.restaurant ? (
+          <>
+            <h1 className="text-center text-3xl font-medium">
+              {" "}
+              New Cooked Order{" "}
+            </h1>
+            <h1 className="text-center my-3 text-2xl font-medium">
+              {" "}
+              from {cookedOrdersData.cookedOrders.restaurant?.name}{" "}
+            </h1>
+            <button
+              onClick={() => triggerMutation(cookedOrdersData?.cookedOrders.id)}
+              className="btn w-full block text-center mt-5"
+            >
+              {" "}
+              Accept &rarr;{" "}
+            </button>
+          </>
+        ) : (
+          <h1 className="text-center text-3xl font-medium">No orders yet</h1>
+        )}
+      </div>
     </div>
   );
 };

@@ -310,6 +310,7 @@ export class OrderService {
         id: orderId,
         driver,
       });
+      
       await this.pubSub.publish(NEW_ORDER_UPDATE, {
         orderUpdates: { ...order, driver },
       });
